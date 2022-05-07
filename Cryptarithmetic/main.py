@@ -11,9 +11,17 @@ def getUserInput():
 
 def createSolver(first, second, result):
     solver = CryptarithmeticSolver(first, second, result)
-    x = solver.backtracking({})
-    print(x)
-    print("gf")
+    res = solver.backtracking({})
+    print(res)
+    firstValue = int("".join(list(map(lambda c: str(res[c]), first))))
+    secondValue = int("".join(list(map(lambda c: str(res[c]), second))))
+    resultValue = int("".join(list(map(lambda c: str(res[c]), result))))
+    
+    print("first:" + str(firstValue))
+    print("second:" + str(secondValue))
+    print("result:" + str(resultValue))
+    print("Succes? " + str(firstValue + secondValue == resultValue))
+    print("- - -")
     
 getUserInput()
 

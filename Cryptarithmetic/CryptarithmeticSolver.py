@@ -10,27 +10,17 @@ class CryptarithmeticSolver:
         self.first = first
         self.second = second
         self.result = result
-        self.vars = {}
-        self.charsNum = 0
-        self.setVars()
-        self.domains = {}
-        self.setDomains()
-        self.assignments = {}
+        self.vars = self.getVars()
         self.constraints = []
         self.setConstraints()
-        self.connectConstraints()
+        self.constraints.reverse()
+        self.domains = {}
+        self.setDomains()
+        self.assignments = {'0': 0}
         self.domainReduction()
 
     def domainReduction(self):
         fLen, sLen, rLen = len(self.first), len(self.second), len(self.result)
-        
-        # remove 0 from domains of MSB letters (number can't starts from 0)
-        if fLen > 1:
-            self.domains[self.first[0]].setDomain(0, False)
-        if sLen > 1:
-            self.domains[self.second[0]].setDomain(0, False)
-        if rLen > 1:
-            self.domains[self.result[0]].setDomain(0, False)
         
         if rLen > fLen and rLen > sLen:
             self.assignments[self.result[0]] = 1
@@ -42,119 +32,100 @@ class CryptarithmeticSolver:
                 else:
                     self.assignments[self.second[0]] = 9
                     self.updateDomains(self.second[0], 9)
-                    
-                
 
-                
-        
-
-    def setVars(self):
+    def getVars(self):
         vars = list(set(self.first + self.second + self.result))
-        self.charsNum = len(vars)
-        addVars = min(len(self.first), len(self.second))
-        varsSize = 0
+        varsElements = {}
         for char in vars:
-            self.vars[char] = EncryptVar(char)
-        varsSize = len(self.vars)
+            varsElements[char] = EncryptVar(char)
+        return varsElements
+            
     
     def setDomains(self):
+        firsts = [self.first[0], self.second[0], self.result[0]]
         for var in self.vars:
-            self.domains[var] = Domain()
-
-      
-    def setConstraints(self):
-        self.constraints += [AllDifferent(self.first, self.second, self.result)]
-
-        firstRev, secondRev, resultRev = self.first[::-1],self.second[::-1], self.result[::-1]
-        for index in range(len(self.result)):
-            
-            if index < len(self.first) and index < len(self.second):
-                add1, add2 = firstRev[index], secondRev[index]
-                res = resultRev[index]
-                self.constraints += [SumEquals(add1, add2, res)]
-                continue
-            
-            # first word longer than second word
-            if index < len(self.first):
-                add1, add2 = firstRev[index], 0
-                res = resultRev[index]
-                self.constraints += [SumEquals(add1, add2, res)]
-                continue
-            
-            # second word longer than first word
-            if index < len(self.second):
-                add1, add2 = 0, secondRev[index]
-                res = resultRev[index]
-                self.constraints += [SumEquals(add1, add2, res)]
-                continue
-            
-            # if result word bigger than first and second words,
-            # the first and second word are the same length
-            if index == len(self.result) - 1 and len(self.first) == len(self.second):
-                add1, add2 = 0, 0
-                res = resultRev[index]
-                self.assignments[res] = 1
-                self.updateDomains(res, 1)
-                self.constraints += [SumEquals(add1, add2, res)]
-            
-            # if result word bigger than first and second words,
-            # the first and second word are not the same length
+            if var in firsts:
+                self.domains[var] = Domain([0])
+            elif len(var) == 1:
+                self.domains[var] = Domain()
             else:
-                add1, add2 = 0, 0
-                res = resultRev[index]
-                self.assignments[res] = 1
-                self.updateDomains(res, 1)
-                self.constraints += [SumEquals(add1, add2, res)]
+                self.domains[var] = Domain(list(range(2, 10)))
+
+    def setConstraints(self):
+        self.constraints += [AllDifferent(self.vars)]
+        
+        firstPadding = ['0' for i in range(len(self.result) - len(self.first))]
+        secondPadding = ['0' for i in range(len(self.result) - len(self.second))]
+        
+        firstRev = str(firstPadding) + self.first[::-1]
+        secondRev = str(secondPadding) + self.second[::-1]
+        resultRev = self.result[::-1]
+        
+        prevCarry = None
+        
+        for index in range(len(self.result)):
+            carry = 'x' + str(index)
+            self.vars[carry] = EncryptVar(carry)
+            
+            if not prevCarry:
+                self.constraints += [SumEquals([firstRev[index], secondRev[index]], resultRev[index], carry)]
+            else:
+                self.constraints += [SumEquals([firstRev[index], secondRev[index], prevCarry], resultRev[index], carry)]
+            
+            prevCarry = carry
     
     
-    def connectConstraints(self):
-        for i in range(len(self.constraints)):
-            if i > 1:
-                self.constraints[i].prev = self.constraints[i-1]
-            if i >= 1 and i < len(self.constraints) - 1:
-                self.constraints[i].next = self.constraints[i+1]
+    # def connectConstraints(self):
+    #     for i in range(len(self.constraints)):
+    #         if i > 2:
+    #             self.constraints[i].prev = self.constraints[i-1]
+    #         if i >= 2 and i < len(self.constraints) - 1:
+    #             self.constraints[i].next = self.constraints[i+1]
     
     def isComplete(self, result):
         if not result:
             return False
-        return len(result) == self.charsNum
+        return len(result) == len(self.vars)
     
     def backtracking(self, assinments):
         if self.isComplete(assinments):
             return self.assignments
-        unssignedVars = self.getUnssignedVars()
+        
         # the first main point: which var to choose.
-        var = unssignedVars[0]
-        freeDomain = self.getFreeDomain(var, self.assignments)
+        var = self.getUnassignedVar()
+        
+        if var[0] == 'x':
+            a = 1
+        # freeDomain = self.getFreeDomain(var, self.assignments)
         # the second main point: which value to choose.
-        for domain in freeDomain:
+        for value in self.domains[var].domain:
             assinments = dict(copy.deepcopy(self.assignments))
-            assinments[var] = domain
-            # self.assignments[var] = domain
-            # self.updateDomains(var, domain)
-            if self.checkVarConsistency(assinments):
-                self.assignments[var] = domain
-                self.updateDomains(var, domain)  
+            assinments[var] = value
+            if self.checkConsistency(assinments):
+                self.assignments[var] = value
+                self.updateDomains(var, value)  
                 res = self.backtracking(self.assignments)
                 if res != -1:
                     return res
                 self.assignments.pop(var)
-                self.cancelDomains(var, domain)
+                self.cancelDomains(var, value)
         return -1
     
-    def checkVarConsistency(self, ass):
+    def checkConsistency(self, ass):
         for cons in self.constraints:
             if not cons.isConsist(ass):
                 return False
         return True
              
-    def getUnssignedVars(self):
-        vars = list(copy.deepcopy(self.vars))
-        unssignedVars = []
-        for var in vars:
-            if not var in self.assignments:
-                unssignedVars += [var]
-        return unssignedVars
+    def getUnassignedVar(self):
+        return list(filter(lambda x: x not in self.assignments, self.vars))[0]
+        
+        # return self.sortByMRV(unssignedVars)
+            
+    def sortByMRV(self, unssignedVars):
+        sortedDomains = sorted(unssignedVars, key=lambda x: sum(self.domains[x].domain))
+        return sortedDomains
+             
     
     def getFreeDomain(self, var, assignment):
         index = 0
@@ -169,13 +140,13 @@ class CryptarithmeticSolver:
         return freeDomains
 
 
-    def updateDomains(self, var, index):
-        for dom in self.domains:
-            if dom != var:
-                self.domains[dom].updateOtherDomains(index)
+    def updateDomains(self, var, value):
+        for v in self.vars:
+            if v != var and len(var) == 1 and len(v) == 1: # means var and v are not carry
+                self.domains[v].removeFromDomain(value)
     
-    def cancelDomains(self, var, index):
-        for dom in self.domains:
-            if dom != var:
-                self.domains[dom].cancelOtherDomains(index)
+    def cancelDomains(self, var, value):
+        for v in self.vars:
+            if v != var and len(var) == 1 and len(v) == 1: # means var and v are not carry
+                self.domains[v].addToDomain(value)
                 
