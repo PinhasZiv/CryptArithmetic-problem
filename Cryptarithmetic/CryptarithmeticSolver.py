@@ -22,17 +22,31 @@ class CryptarithmeticSolver:
         self.domainReduction()
 
     def domainReduction(self):
+        fLen, sLen, rLen = len(self.first), len(self.second), len(self.result)
+        
         # remove 0 from domains of MSB letters (number can't starts from 0)
-        if len(self.first) > 1:
+        if fLen > 1:
             self.domains[self.first[0]].setDomain(0, False)
-        if len(self.second) > 1:
+        if sLen > 1:
             self.domains[self.second[0]].setDomain(0, False)
-        if len(self.result) > 1:
+        if rLen > 1:
             self.domains[self.result[0]].setDomain(0, False)
         
-        if len(self.result) > len(self.first) and len(self.result) > len(self.second):
+        if rLen > fLen and rLen > sLen:
             self.assignments[self.result[0]] = 1
             self.updateDomains(self.result[0], 1)
+            if fLen != sLen:
+                if fLen > sLen:
+                    self.assignments[self.first[0]] = 9
+                    self.updateDomains(self.first[0], 9)
+                else:
+                    self.assignments[self.second[0]] = 9
+                    self.updateDomains(self.second[0], 9)
+                    
+                
+
+                
+        
 
     def setVars(self):
         vars = list(set(self.first + self.second + self.result))
@@ -49,37 +63,47 @@ class CryptarithmeticSolver:
 
       
     def setConstraints(self):
-        firstRev, secondRev, resultRev = self.first[::-1],self.second[::-1], self.result[::-1]
         self.constraints += [AllDifferent(self.first, self.second, self.result)]
+
+        firstRev, secondRev, resultRev = self.first[::-1],self.second[::-1], self.result[::-1]
         for index in range(len(self.result)):
-                
+            
             if index < len(self.first) and index < len(self.second):
                 add1, add2 = firstRev[index], secondRev[index]
                 res = resultRev[index]
                 self.constraints += [SumEquals(add1, add2, res)]
                 continue
             
+            # first word longer than second word
             if index < len(self.first):
                 add1, add2 = firstRev[index], 0
                 res = resultRev[index]
                 self.constraints += [SumEquals(add1, add2, res)]
                 continue
             
+            # second word longer than first word
             if index < len(self.second):
                 add1, add2 = 0, secondRev[index]
                 res = resultRev[index]
                 self.constraints += [SumEquals(add1, add2, res)]
                 continue
             
+            # if result word bigger than first and second words,
+            # the first and second word are the same length
             if index == len(self.result) - 1 and len(self.first) == len(self.second):
                 add1, add2 = 0, 0
                 res = resultRev[index]
                 self.assignments[res] = 1
                 self.updateDomains(res, 1)
                 self.constraints += [SumEquals(add1, add2, res)]
+            
+            # if result word bigger than first and second words,
+            # the first and second word are not the same length
             else:
                 add1, add2 = 0, 0
                 res = resultRev[index]
+                self.assignments[res] = 1
+                self.updateDomains(res, 1)
                 self.constraints += [SumEquals(add1, add2, res)]
     
     
