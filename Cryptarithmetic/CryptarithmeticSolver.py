@@ -13,7 +13,6 @@ class CryptarithmeticSolver:
         self.vars = self.getVars()
         self.constraints = []
         self.setConstraints()
-        self.constraints.reverse()
         self.domains = {}
         self.setDomains()
         self.assignments = {'0': 0}
@@ -24,6 +23,7 @@ class CryptarithmeticSolver:
         
         if rLen > fLen and rLen > sLen:
             self.assignments[self.result[0]] = 1
+            self.assignments['x'+str(max(len(self.first), len(self.second)) - 1)] = 1
             self.updateDomains(self.result[0], 1)
             if fLen != sLen:
                 if fLen > sLen:
@@ -54,11 +54,18 @@ class CryptarithmeticSolver:
     def setConstraints(self):
         self.constraints += [AllDifferent(self.vars)]
         
-        firstPadding = ['0' for i in range(len(self.result) - len(self.first))]
-        secondPadding = ['0' for i in range(len(self.result) - len(self.second))]
+        # need to to it shotrly
+        firstPaddingList = ""
+        for i in range(len(self.result) - len(self.first)):
+            firstPaddingList += '0'
         
-        firstRev = str(firstPadding) + self.first[::-1]
-        secondRev = str(secondPadding) + self.second[::-1]
+        secondPaddingList = ""
+        for i in range(len(self.result) - len(self.second)):
+            secondPaddingList += '0'
+            
+        
+        firstRev = self.first[::-1] + firstPaddingList
+        secondRev = self.second[::-1] + secondPaddingList
         resultRev = self.result[::-1]
         
         prevCarry = None
@@ -94,8 +101,6 @@ class CryptarithmeticSolver:
         # the first main point: which var to choose.
         var = self.getUnassignedVar()
         
-        if var[0] == 'x':
-            a = 1
         # freeDomain = self.getFreeDomain(var, self.assignments)
         # the second main point: which value to choose.
         for value in self.domains[var].domain:
@@ -118,7 +123,8 @@ class CryptarithmeticSolver:
         return True
              
     def getUnassignedVar(self):
-        return list(filter(lambda x: x not in self.assignments, self.vars))[0]
+        li = list(filter(lambda x: x not in self.assignments, self.vars))
+        return li[0]
         
         # return self.sortByMRV(unssignedVars)
             

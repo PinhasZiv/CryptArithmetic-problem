@@ -9,19 +9,22 @@ class Constrait(ABC):
 
 class SumEquals(Constrait):
     
-    def __init__(self, vars, res, carry):
+    def __init__(self, vars, res, carry = 0):
         self.vars = vars
         self.res = res
         self.carry = carry
         
     def isConsist(self, assignment):
-        add1Val, add2Val, resWithCarry = 0, 0, 0
-        varList = self.vars + [self.res]
+        resWithCarry = 0
+        varList = self.vars + [self.res, self.carry]
 
         for var in varList:
             if not var in assignment:
                 return True
         
+        if 's' in self.res:
+            aa = 1
+            
         values = list(map(lambda x: assignment[x], self.vars))                
         sumVars = sum(values)
         resWithCarry = assignment[self.res] + assignment[self.carry] * 10
@@ -36,6 +39,7 @@ class AllDifferent(Constrait):
     
     def isConsist(self, assignment):
         filteredVars = list(filter(lambda x: x in assignment, self.vars))
-        values = list(map(lambda x: assignment[x], filteredVars)) 
+        filterCarry = list(filter(lambda x: len(x) == 1, filteredVars))
+        values = list(map(lambda x: assignment[x], filterCarry)) 
         valuesSet = set(values)
         return len(valuesSet) == len(values)
