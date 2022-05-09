@@ -22,11 +22,12 @@ class SumEquals(Constrait):
             if not var in assignment:
                 return True
         
-        if 's' in self.res:
-            aa = 1
-            
+        if 'a' in assignment and 'b' in assignment and 'x1' in assignment:
+            if assignment['b'] != 1 and assignment['a'] != 2:
+                a = "aa" 
         values = list(map(lambda x: assignment[x], self.vars))                
         sumVars = sum(values)
+            
         resWithCarry = assignment[self.res] + assignment[self.carry] * 10
 
         return sumVars == resWithCarry

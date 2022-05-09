@@ -13,8 +13,6 @@ class CryptarithmeticSolver:
         self.vars = self.getVars()
         self.constraints = []
         self.setConstraints()
-        self.domains = {}
-        self.setDomains()
         self.assignments = {'0': 0}
         self.domainReduction()
 
@@ -36,21 +34,21 @@ class CryptarithmeticSolver:
     def getVars(self):
         vars = list(set(self.first + self.second + self.result))
         varsElements = {}
-        for char in vars:
-            varsElements[char] = EncryptVar(char)
+        for var in vars:
+            domain = self.getDomain(var)
+            varsElements[var] = EncryptVar(var, domain)
         return varsElements
             
     
-    def setDomains(self):
+    def getDomain(self, var):
         firsts = [self.first[0], self.second[0], self.result[0]]
-        for var in self.vars:
-            if var in firsts:
-                self.domains[var] = Domain([0])
-            elif len(var) == 1:
-                self.domains[var] = Domain()
-            else:
-                self.domains[var] = Domain(list(range(2, 10)))
-
+        if var in firsts:
+            return Domain([0])
+        elif len(var) == 1:
+            return Domain()
+        else:
+            return Domain(list(range(2, 10)))
+    
     def setConstraints(self):
         self.constraints += [AllDifferent(self.vars)]
         
@@ -72,7 +70,8 @@ class CryptarithmeticSolver:
         
         for index in range(len(self.result)):
             carry = 'x' + str(index)
-            self.vars[carry] = EncryptVar(carry)
+            domain = self.getDomain(carry)
+            self.vars[carry] = EncryptVar(carry, domain)
             
             if not prevCarry:
                 self.constraints += [SumEquals([firstRev[index], secondRev[index]], resultRev[index], carry)]
@@ -103,7 +102,7 @@ class CryptarithmeticSolver:
         
         # freeDomain = self.getFreeDomain(var, self.assignments)
         # the second main point: which value to choose.
-        for value in self.domains[var].domain:
+        for value in self.vars[var].domain.domain:
             assinments = dict(copy.deepcopy(self.assignments))
             assinments[var] = value
             if self.checkConsistency(assinments):
@@ -133,26 +132,26 @@ class CryptarithmeticSolver:
         return sortedDomains
              
     
-    def getFreeDomain(self, var, assignment):
-        index = 0
-        freeDomains = []
-        for domain in self.domains[var].domain:
-            if var in assignment:
-                if index == assignment[var]:
-                    continue
-            if domain:
-                freeDomains += [index]
-            index += 1
-        return freeDomains
+    # def getFreeDomain(self, var, assignment):
+    #     index = 0
+    #     freeDomains = []
+    #     for domain in self.domains[var].domain:
+    #         if var in assignment:
+    #             if index == assignment[var]:
+    #                 continue
+    #         if domain:
+    #             freeDomains += [index]
+    #         index += 1
+    #     return freeDomains
 
 
     def updateDomains(self, var, value):
         for v in self.vars:
             if v != var and len(var) == 1 and len(v) == 1: # means var and v are not carry
-                self.domains[v].removeFromDomain(value)
+                self.vars[v].domain.removeFromDomain(value)
     
     def cancelDomains(self, var, value):
         for v in self.vars:
             if v != var and len(var) == 1 and len(v) == 1: # means var and v are not carry
-                self.domains[v].addToDomain(value)
+                self.vars[v].domain.addToDomain(value)
                 
