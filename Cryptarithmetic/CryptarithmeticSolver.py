@@ -52,16 +52,13 @@ class CryptarithmeticSolver:
             return Domain([0, 1])
     
     def setConstraints(self):
-        self.constraints += [AllDifferent(self.vars)]
+        varsCopy = copy.deepcopy(list(self.vars.keys()))
+        self.constraints += [AllDifferent(varsCopy)]
         
         # need to to it shotrly
-        firstPaddingList = ""
-        for i in range(len(self.result) - len(self.first)):
-            firstPaddingList += '0'
+        firstPaddingList = '0' * (len(self.result) - len(self.first))
         
-        secondPaddingList = ""
-        for i in range(len(self.result) - len(self.second)):
-            secondPaddingList += '0'
+        secondPaddingList = '0' * (len(self.result) - len(self.second))
             
         
         firstRev = self.first[::-1] + firstPaddingList
@@ -76,16 +73,13 @@ class CryptarithmeticSolver:
             self.vars[carry] = EncryptVar(carry, domain)
             
             if not prevCarry:
-                print("not prevCarry")
                 self.constraints += [SumEquals([firstRev[index], secondRev[index]], resultRev[index], carry)]
             else:
-                print("prevCarry")
                 self.constraints += [SumEquals([firstRev[index], secondRev[index], prevCarry], resultRev[index], carry)]
             
             prevCarry = carry
         
         #last carry is out of result 'range'
-        
         self.assignments[prevCarry] = 0
     
     
@@ -113,14 +107,14 @@ class CryptarithmeticSolver:
         # print('var: ', var)
         # freeDomain = self.getFreeDomain(var, self.assignments)
         # the second main point: which value to choose.
-        dom = self.vars[var].domain.domain
+        dom = copy.deepcopy(self.vars[var].domain.domain)
         for value in dom:
             # assinments = dict(copy.deepcopy(self.assignments))
             # assinments[var] = value
             if self.checkConsistency(assignments, var, value):
                 assignments[var] = value
                 self.updateDomains(var, value)  
-                res = self.backtracking(dict(copy.deepcopy(assignments)), backtrackingCounter + 1)
+                res = self.backtracking(assignments, backtrackingCounter + 1)
                 if res != -1:
                     # print(backtrackingCounter, ': assignment before res: \t', assignments)
                     return res

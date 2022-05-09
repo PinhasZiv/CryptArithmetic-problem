@@ -32,6 +32,7 @@ class SumEquals(Constrait):
 class AllDifferent(Constrait):
     
     def __init__(self, vars):
+        print("AllDifferent type(vars):", type(vars))
         self.vars = vars
     
     def isConsist(self, assignment):
