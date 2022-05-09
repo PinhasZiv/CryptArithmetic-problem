@@ -11,10 +11,12 @@ class CryptarithmeticSolver:
         self.second = second
         self.result = result
         self.vars = self.getVars()
+        self.assignments = {'0': 0}
         self.constraints = []
         self.setConstraints()
-        self.assignments = {'0': 0}
-        self.domainReduction()
+        # self.domainReduction()
+        
+        self.backtrackingCounter = 0
 
     def domainReduction(self):
         fLen, sLen, rLen = len(self.first), len(self.second), len(self.result)
@@ -43,11 +45,11 @@ class CryptarithmeticSolver:
     def getDomain(self, var):
         firsts = [self.first[0], self.second[0], self.result[0]]
         if var in firsts:
-            return Domain([0])
+            return Domain(list(range(1, 10)))
         elif len(var) == 1:
-            return Domain()
+            return Domain(list(range(0, 10)))
         else:
-            return Domain(list(range(2, 10)))
+            return Domain([0, 1])
     
     def setConstraints(self):
         self.constraints += [AllDifferent(self.vars)]
@@ -74,11 +76,17 @@ class CryptarithmeticSolver:
             self.vars[carry] = EncryptVar(carry, domain)
             
             if not prevCarry:
+                print("not prevCarry")
                 self.constraints += [SumEquals([firstRev[index], secondRev[index]], resultRev[index], carry)]
             else:
+                print("prevCarry")
                 self.constraints += [SumEquals([firstRev[index], secondRev[index], prevCarry], resultRev[index], carry)]
             
             prevCarry = carry
+        
+        #last carry is out of result 'range'
+        
+        self.assignments[prevCarry] = 0
     
     
     # def connectConstraints(self):
@@ -91,38 +99,48 @@ class CryptarithmeticSolver:
     def isComplete(self, result):
         if not result:
             return False
-        return len(result) == len(self.vars)
+        return len(result) == (len(self.vars) + 1)
     
-    def backtracking(self, assinments):
-        if self.isComplete(assinments):
-            return self.assignments
+    def backtracking(self, assignments, backtrackingCounter = 0):
+        # print("\n- - - - - - - - -\n")
+        # print(backtrackingCounter, ": assignments at start: \t", assignments)
+
+        if self.isComplete(assignments):
+            return assignments
         
         # the first main point: which var to choose.
-        var = self.getUnassignedVar()
-        
+        var = self.getUnassignedVar(assignments)
+        # print('var: ', var)
         # freeDomain = self.getFreeDomain(var, self.assignments)
         # the second main point: which value to choose.
-        for value in self.vars[var].domain.domain:
-            assinments = dict(copy.deepcopy(self.assignments))
-            assinments[var] = value
-            if self.checkConsistency(assinments):
-                self.assignments[var] = value
+        dom = self.vars[var].domain.domain
+        for value in dom:
+            # assinments = dict(copy.deepcopy(self.assignments))
+            # assinments[var] = value
+            if self.checkConsistency(assignments, var, value):
+                assignments[var] = value
                 self.updateDomains(var, value)  
-                res = self.backtracking(self.assignments)
+                res = self.backtracking(dict(copy.deepcopy(assignments)), backtrackingCounter + 1)
                 if res != -1:
+                    # print(backtrackingCounter, ': assignment before res: \t', assignments)
                     return res
-                self.assignments.pop(var)
+                assignments.pop(var)
                 self.cancelDomains(var, value)
+        
+        # print(backtrackingCounter, ': assignment before return: \t', assignments)
+        
         return -1
     
-    def checkConsistency(self, ass):
+    def checkConsistency(self, ass, newVar, newValue):
+        assCopy = dict(copy.deepcopy(ass))
+        assCopy[newVar] = newValue
         for cons in self.constraints:
-            if not cons.isConsist(ass):
+            if not cons.isConsist(assCopy):
                 return False
         return True
              
-    def getUnassignedVar(self):
-        li = list(filter(lambda x: x not in self.assignments, self.vars))
+    def getUnassignedVar(self, assignments):
+        li = list(filter(lambda x: x not in assignments, self.vars))
         return li[0]
         
         # return self.sortByMRV(unssignedVars)

@@ -11,8 +11,8 @@ def getUserInput():
 
 def createSolver(first, second, result):
     solver = CryptarithmeticSolver(first, second, result)
-    res = solver.backtracking({})
-    print(res)
+    res = solver.backtracking(solver.assignments)
+    print('res: ', res)
     if res != -1:
         firstValue = int("".join(list(map(lambda c: str(res[c]), first))))
         secondValue = int("".join(list(map(lambda c: str(res[c]), second))))
