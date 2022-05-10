@@ -66,7 +66,7 @@ class CryptarithmeticSolver:
         resultRev = self.result[::-1]
         
         prevCarry = None
-        
+
         for index in range(len(self.result)):
             carry = 'x' + str(index)
             domain = self.getDomain(carry)
