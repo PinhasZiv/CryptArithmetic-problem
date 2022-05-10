@@ -14,7 +14,7 @@ class CryptarithmeticSolver:
         self.assignments = {'0': 0}
         self.constraints = []
         self.setConstraints()
-        # self.domainReduction()
+        self.domainReduction()
         
         self.backtrackingCounter = 0
 
@@ -82,14 +82,6 @@ class CryptarithmeticSolver:
         #last carry is out of result 'range'
         self.assignments[prevCarry] = 0
     
-    
-    # def connectConstraints(self):
-    #     for i in range(len(self.constraints)):
-    #         if i > 2:
-    #             self.constraints[i].prev = self.constraints[i-1]
-    #         if i >= 2 and i < len(self.constraints) - 1:
-    #             self.constraints[i].next = self.constraints[i+1]
-    
     def isComplete(self, result):
         if not result:
             return False
@@ -134,13 +126,12 @@ class CryptarithmeticSolver:
         return True
              
     def getUnassignedVar(self, assignments):
-        li = list(filter(lambda x: x not in assignments, self.vars))
-        return li[0]
+        unssignedVars = list(filter(lambda x: x not in assignments, self.vars))
         
-        # return self.sortByMRV(unssignedVars)
+        return self.sortByMRV(unssignedVars)[0]
             
     def sortByMRV(self, unssignedVars):
-        sortedDomains = sorted(unssignedVars, key=lambda x: sum(self.domains[x].domain))
+        sortedDomains = sorted(unssignedVars, key=lambda x: len(self.vars[x].domain.domain))
         return sortedDomains
              
     
