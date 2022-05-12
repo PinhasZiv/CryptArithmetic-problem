@@ -81,7 +81,7 @@ class CryptarithmeticSolver:
         
         #last carry is out of result 'range'
         self.assignments[prevCarry] = 0
-    
+
     def isComplete(self, result):
         if not result:
             return False
