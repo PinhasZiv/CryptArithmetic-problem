@@ -6,7 +6,12 @@ import Cryptarithmetic.CryptarithmeticSolver
 
 root = Tk()
 root.title("CryptArithmetic problem")
-root.geometry("450x300")
+root.geometry("450x280")
+
+root.grid_rowconfigure(0, weight=1)
+root.grid_columnconfigure(0, weight=1)
+root.grid_rowconfigure(10, weight=1)
+root.grid_columnconfigure(10, weight=1)
 
 
 Font_tuple = ("Comic Sans MS", 10)
@@ -14,18 +19,19 @@ Font_tuple = ("Comic Sans MS", 10)
 
 titleMessageText = "Enter 3 Words:"
 titleMessage = Label(root, text=titleMessageText)
-titleMessage.configure(font=Font_tuple)
-titleMessage.grid(column=2, row=1, columnspan=3, pady=5)
+titleMessage.configure(font=Font_tuple, anchor="center")
+titleMessage.grid(column=1, row=1, columnspan=5)
 
 #lables for centering the objects inside the window
-Label(root, text="", padx=50).grid(row=0, column=0)
-Label(root, text="", padx=50).grid(row=0, column=10)
+# Label(root, text="", padx=10, pady=40).grid(row=0, column=0)
+# Label(root, text="", padx=55, pady=40).grid(row=10, column=10)
+
 
 
 
 messageLabel = Label(root, text="")
-messageLabel.configure(font=Font_tuple)
-messageLabel.grid(row=3, column=1, columnspan=5)
+messageLabel.configure(font=Font_tuple, anchor="center")
+messageLabel.grid(row=3, column=1, columnspan=5, pady=10)
 
 resultLabel = Label(root, text="", fg="blue")
 
@@ -37,6 +43,7 @@ def onClick():
         resultLabel['text'] = ""
         messageLabel['text'] = legal
         messageLabel['fg'] = "red"
+        messageLabel.grid(row=3, column=1, columnspan=5, pady=0)
     else:
         messageLabel['text'] = ""
         res = solver(first, second, third)

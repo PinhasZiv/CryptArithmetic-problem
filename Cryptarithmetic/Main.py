@@ -15,6 +15,9 @@ def getUserInput():
     return first, second, result
 
 def getLegalMassege(first, second, result):
+    # check if one of the inputs is empty
+    if first == "" or second == "" or result == "":
+        return "Please fill all inputs"
     # check if the input contains numbers
     if any(char.isdigit() for char in first+second+result):
         return "Please enter only letters (not numbers)"
@@ -28,7 +31,7 @@ def getStringAnswer(res, first, second, result):
         firstValue = int("".join(list(map(lambda c: str(res[c]), first))))
         secondValue = int("".join(list(map(lambda c: str(res[c]), second))))
         resultValue = int("".join(list(map(lambda c: str(res[c]), result))))
-        strResult = str(firstValue) + " + " + str(secondValue) + " = " + str(resultValue)
+        strResult = "Result: " + str(firstValue) + " + " + str(secondValue) + " = " + str(resultValue)
         return strResult
 
 
