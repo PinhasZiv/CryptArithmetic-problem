@@ -1,11 +1,11 @@
 import copy
-from Constraint import Constrait, SumEquals, AllDifferent
+from Constraint import SumEquals, AllDifferent
 from Domain import Domain
 from EncryptVar import EncryptVar
 
 
 class CryptarithmeticSolver:
-    
+
     def __init__(self, first, second, result):
         self.first = first
         self.second = second
@@ -15,12 +15,10 @@ class CryptarithmeticSolver:
         self.constraints = []
         self.setConstraints()
         self.domainReduction()
-        
-        self.backtrackingCounter = 0
 
     def domainReduction(self):
         fLen, sLen, rLen = len(self.first), len(self.second), len(self.result)
-        
+
         if rLen > fLen and rLen > sLen:
             self.assignments[self.result[0]] = 1
             self.assignments['x'+str(max(len(self.first), len(self.second)) - 1)] = 1
@@ -40,8 +38,7 @@ class CryptarithmeticSolver:
             domain = self.getDomain(var)
             varsElements[var] = EncryptVar(var, domain)
         return varsElements
-            
-    
+
     def getDomain(self, var):
         firsts = [self.first[0], self.second[0], self.result[0]]
         if var in firsts:
@@ -50,73 +47,62 @@ class CryptarithmeticSolver:
             return Domain(list(range(0, 10)))
         else:
             return Domain([0, 1])
-    
+
     def setConstraints(self):
         varsCopy = copy.deepcopy(list(self.vars.keys()))
         self.constraints += [AllDifferent(varsCopy)]
-        
-        # need to to it shotrly
+
+        # padding the numbers with zeros.
         firstPaddingList = '0' * (len(self.result) - len(self.first))
-        
         secondPaddingList = '0' * (len(self.result) - len(self.second))
-            
-        
+
         firstRev = self.first[::-1] + firstPaddingList
         secondRev = self.second[::-1] + secondPaddingList
         resultRev = self.result[::-1]
-        
+
         prevCarry = None
 
         for index in range(len(self.result)):
             carry = 'x' + str(index)
             domain = self.getDomain(carry)
             self.vars[carry] = EncryptVar(carry, domain)
-            
+
             if not prevCarry:
                 self.constraints += [SumEquals([firstRev[index], secondRev[index]], resultRev[index], carry)]
             else:
                 self.constraints += [SumEquals([firstRev[index], secondRev[index], prevCarry], resultRev[index], carry)]
-            
+
             prevCarry = carry
-        
-        #last carry is out of result 'range'
+
+        # last carry is out of result 'range'
         self.assignments[prevCarry] = 0
 
     def isComplete(self, result):
         if not result:
             return False
         return len(result) == (len(self.vars) + 1)
-    
-    def backtracking(self, assignments, backtrackingCounter = 0):
-        # print("\n- - - - - - - - -\n")
-        # print(backtrackingCounter, ": assignments at start: \t", assignments)
+
+    def backtracking(self, assignments):
 
         if self.isComplete(assignments):
             return assignments
-        
+
         # the first main point: which var to choose.
         var = self.getUnassignedVar(assignments)
-        # print('var: ', var)
-        # freeDomain = self.getFreeDomain(var, self.assignments)
+
         # the second main point: which value to choose.
-        dom = copy.deepcopy(self.vars[var].domain.domain)
+        dom = copy.deepcopy(self.vars[var].getDomain().getDomainList())
         for value in dom:
-            # assinments = dict(copy.deepcopy(self.assignments))
-            # assinments[var] = value
             if self.checkConsistency(assignments, var, value):
                 assignments[var] = value
-                self.updateDomains(var, value)  
-                res = self.backtracking(assignments, backtrackingCounter + 1)
+                self.updateDomains(var, value)
+                res = self.backtracking(assignments)
                 if res != -1:
-                    # print(backtrackingCounter, ': assignment before res: \t', assignments)
                     return res
                 assignments.pop(var)
                 self.cancelDomains(var, value)
-        
-        # print(backtrackingCounter, ': assignment before return: \t', assignments)
-        
         return -1
-    
+
     def checkConsistency(self, ass, newVar, newValue):
         assCopy = dict(copy.deepcopy(ass))
         assCopy[newVar] = newValue
@@ -124,37 +110,22 @@ class CryptarithmeticSolver:
             if not cons.isConsist(assCopy):
                 return False
         return True
-             
-    def getUnassignedVar(self, assignments):
-        unssignedVars = list(filter(lambda x: x not in assignments, self.vars))
-        
-        return self.sortByMRV(unssignedVars)[0]
-            
-    def sortByMRV(self, unssignedVars):
-        sortedDomains = sorted(unssignedVars, key=lambda x: len(self.vars[x].domain.domain))
-        return sortedDomains
-             
-    
-    # def getFreeDomain(self, var, assignment):
-    #     index = 0
-    #     freeDomains = []
-    #     for domain in self.domains[var].domain:
-    #         if var in assignment:
-    #             if index == assignment[var]:
-    #                 continue
-    #         if domain:
-    #             freeDomains += [index]
-    #         index += 1
-    #     return freeDomains
 
+    def getUnassignedVar(self, assignments):
+        unassignedVars = list(filter(lambda x: x not in assignments, self.vars))
+        return self.sortByMRV(unassignedVars)[0]
+
+    def sortByMRV(self, unassignedVars):
+        sortedDomains = sorted(unassignedVars, key=lambda x: len(self.vars[x].domain.domain))
+        return sortedDomains
 
     def updateDomains(self, var, value):
         for v in self.vars:
-            if v != var and len(var) == 1 and len(v) == 1: # means var and v are not carry
-                self.vars[v].domain.removeFromDomain(value)
-    
+            if v != var and len(var) == 1 and len(v) == 1:  # means var and v are not carry
+                self.vars[v].getDomain().removeFromDomain(value)
+
     def cancelDomains(self, var, value):
         for v in self.vars:
-            if v != var and len(var) == 1 and len(v) == 1: # means var and v are not carry
-                self.vars[v].domain.addToDomain(value)
-                
+            if v != var and len(var) == 1 and len(v) == 1:  # means var and v are not carry
+                self.vars[v].getDomain().addToDomain(value)
+

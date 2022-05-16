@@ -7,4 +7,6 @@ class EncryptVar:
     
     def getVar(self):
         return self.var
-        
+
+    def getDomain(self):
+        return self.domain

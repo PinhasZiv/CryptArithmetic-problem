@@ -1,8 +1,5 @@
 from tkinter import *
-from Main import getLegalMassege, solver, getStringAnswer
-from tkinter import font
-
-import Cryptarithmetic.CryptarithmeticSolver
+from Main import getLegalMessage, solver, getStringAnswer
 
 root = Tk()
 root.title("CryptArithmetic problem")
@@ -22,7 +19,7 @@ titleMessage = Label(root, text=titleMessageText)
 titleMessage.configure(font=Font_tuple, anchor="center")
 titleMessage.grid(column=1, row=1, columnspan=5)
 
-#lables for centering the objects inside the window
+# labels for centering the objects inside the window
 # Label(root, text="", padx=10, pady=40).grid(row=0, column=0)
 # Label(root, text="", padx=55, pady=40).grid(row=10, column=10)
 
@@ -38,7 +35,7 @@ resultLabel = Label(root, text="", fg="blue")
 
 def onClick():
     first, second, third = firstInput.get(), secondInput.get(), thirdInput.get()
-    legal = getLegalMassege(first, second, third)
+    legal = getLegalMessage(first, second, third)
     if legal != "legal":
         resultLabel['text'] = ""
         messageLabel['text'] = legal
