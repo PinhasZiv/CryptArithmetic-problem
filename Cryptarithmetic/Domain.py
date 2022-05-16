@@ -1,31 +1,27 @@
-
 import copy
 
 
 class Domain:
     
-    def __init__(self):
-        self.domain = [True for i in range(10)]
+
+    def __init__(self, domain):
+
+        self.domain = domain
+        self.originalDomain = copy.deepcopy(domain)
+        
+
+    def addToDomain(self, value):
+        if value in self.originalDomain:
+            self.domain += [value]
     
-    def setDomain(self, index, value):
-        self.domain[index] = value
+
+    def removeFromDomain(self, value):
+        if value in self.domain:
+            self.domain.remove(value)
     
-    # set index=True, all the rest = False  
-    def updateDomain(self, index):
-        self.domain[index] = True
-            # else:
-            #     self.domain[i] = False
-    
-    # update other domain:
-    # index = False, all the rest: no change        
-    def updateOtherDomains(self, index):
-        self.domain[index] = False
-    
-    def cancelDomain(self, index):
-        self.domain[index] = True
-    
-    def cancelOtherDomains(self, index):
-        self.domain[index] = True
+
+    def getNextFreeDomain(self):
+        return self.domain[0]
 
         
         
