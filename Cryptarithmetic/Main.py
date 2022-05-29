@@ -1,12 +1,7 @@
 from CryptarithmeticSolver import CryptarithmeticSolver
 
 
-def solver(first, second, result):
-    solver = CryptarithmeticSolver(first, second, result)
-    return solver.backtracking(solver.assignments)
-
-
-def getUserInput():    
+def getUserInput():
     first = input("Enter first element: ")
     second = input("Enter second element: ")
     result = input("Enter result element: ")
@@ -17,6 +12,9 @@ def getLegalMessage(first, second, result):
     # check if one of the inputs is empty
     if first == "" or second == "" or result == "":
         return "Please fill all inputs"
+    # check if more than ten different characters have been entered
+    if len(set(first + second + result)) > 10:
+        return "You cannot enter more than ten different characters."
     # check if the input contains numbers
     if any(char.isdigit() for char in first+second+result):
         return "Please enter only letters (not numbers)"
@@ -24,6 +22,11 @@ def getLegalMessage(first, second, result):
     elif len(first) > len(result) or len(second) > len(result):
         return "The numbers used for adding\nmust be shorter or equal in length to the sum."
     return "legal"
+
+
+def solveProblem(first, second, result):
+    solver = CryptarithmeticSolver(first, second, result)
+    return solver.backtracking(solver.assignments)
 
 
 def getStringAnswer(res, first, second, result):

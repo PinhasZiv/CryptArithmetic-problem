@@ -1,6 +1,6 @@
 import copy
 
-
+# Class for the domain of each variable
 class Domain:
 
     def __init__(self, domain):
