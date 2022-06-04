@@ -1,4 +1,4 @@
-
+# Class for the letter of each variable.
 class EncryptVar:
     
     def __init__(self, var, domain):
@@ -7,4 +7,6 @@ class EncryptVar:
     
     def getVar(self):
         return self.var
-        
+
+    def getDomain(self):
+        return self.domain
