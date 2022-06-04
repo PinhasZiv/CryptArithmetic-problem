@@ -10,7 +10,7 @@ class Constraint(ABC):
 
 
 # Class for constraint Type:
-# The sum of the variables of the adding should be equal to the result variable + carry * 10.
+# The sum of the variables of the adding should be equal to the result variable + (carry * 10).
 class SumEquals(Constraint):
 
     def __init__(self, vars, res, carry='0'):
